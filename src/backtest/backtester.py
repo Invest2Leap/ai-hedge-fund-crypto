@@ -270,6 +270,25 @@ class Backtester:
 
         return total_value
 
+    def count_strategy_signals(self, ticker_signals, signal):
+        """
+        Count how many times `signal` appears in the strategy signals,
+        and return the average confidence percentage for those signals.
+        """
+        count = 0
+        confidence = 0
+        for agent_signal in ticker_signals.values():
+            for interval_signal in agent_signal.values():
+                if isinstance(interval_signal, dict):
+                    strategy_signals = interval_signal.get("strategy_signals", {})
+                    for strategy_signal in strategy_signals.values():
+                        if strategy_signal.get("signal", "").lower() == signal.lower():
+                            count += 1
+                            confidence += strategy_signal.get("confidence")
+        avg_confidence = confidence / count if count else 0.0
+        return count, avg_confidence
+
+
     def prefetch_data(self):
         """Pre-fetch all data needed for the backtest period."""
         print("\nPre-fetching data for the entire backtest period...")
@@ -386,10 +405,11 @@ class Backtester:
                     if ticker in signals:
                         ticker_signals[agent_name] = signals[ticker]
 
-                bullish_count = len([s for s in ticker_signals.values() if s.get("signal", "").lower() == "bullish"])
-                bearish_count = len([s for s in ticker_signals.values() if s.get("signal", "").lower() == "bearish"])
-                neutral_count = len([s for s in ticker_signals.values() if s.get("signal", "").lower() == "neutral"])
-
+                # Count the strategy signals
+                bullish_count, bullish_percentage = self.count_strategy_signals(ticker_signals, "bullish")
+                bearish_count, bearish_percentage = self.count_strategy_signals(ticker_signals, "bearish")
+                neutral_count, _ = self.count_strategy_signals(ticker_signals, "neutral")
+                
                 # Calculate net position value
                 pos = self.portfolio["positions"][ticker]
                 long_val = pos["long"] * current_prices[ticker]
@@ -411,7 +431,9 @@ class Backtester:
                         shares_owned=pos["long"] - pos["short"],  # net shares
                         position_value=net_position_value,
                         bullish_count=bullish_count,
+                        bullish_percentage=bullish_percentage,
                         bearish_count=bearish_count,
+                        bearish_percentage=bearish_percentage,
                         neutral_count=neutral_count,
                     )
                 )
@@ -433,7 +455,9 @@ class Backtester:
                     shares_owned=0,
                     position_value=0,
                     bullish_count=0,
+                    bullish_percentage=0,
                     bearish_count=0,
+                    bearish_percentage=0,
                     neutral_count=0,
                     is_summary=True,
                     total_value=total_value,
