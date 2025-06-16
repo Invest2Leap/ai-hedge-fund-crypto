@@ -64,7 +64,9 @@ def format_backtest_row(
         shares_owned: float,
         position_value: float,
         bullish_count: int,
+        bullish_percentage: float,
         bearish_count: int,
+        bearish_percentage: float,
         neutral_count: int,
         is_summary: bool = False,
         total_value: float = None,
@@ -111,8 +113,8 @@ def format_backtest_row(
             f"{Fore.WHITE}{price:,.2f}{Style.RESET_ALL}",
             f"{Fore.WHITE}{shares_owned:,.{QUANTITY_DECIMALS}f}{Style.RESET_ALL}",
             f"{Fore.YELLOW}{position_value:,.2f}{Style.RESET_ALL}",
-            f"{Fore.GREEN}{bullish_count}{Style.RESET_ALL}",
-            f"{Fore.RED}{bearish_count}{Style.RESET_ALL}",
+            f"{Fore.GREEN}{bullish_count} ({bullish_percentage:.0f}%){Style.RESET_ALL}",
+            f"{Fore.RED}{bearish_count} ({bearish_percentage:.0f}%){Style.RESET_ALL}",
             f"{Fore.BLUE}{neutral_count}{Style.RESET_ALL}",
         ]
 
